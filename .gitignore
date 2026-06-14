@@ -82,6 +82,11 @@ iOSInjectionProject/
 build/
 DerivedData/
 
+## Release artifacts (produced by ReleaseUtils/release.sh)
+/BingWallpaper_v*.zip
+/BingWallpaper_v*.pkg
+/BingWallpaper_latest.*
+
 ####
 # Xcode 4 - Deprecated classes
 #

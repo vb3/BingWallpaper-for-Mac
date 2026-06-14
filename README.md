@@ -28,6 +28,18 @@ recent wallpapers you can browse through.
 
 ## Install
 
+### Homebrew (recommended)
+
+```sh
+brew tap vb3/homebrew-tap
+brew trust vb3/tap          # Homebrew 6+ asks you to trust third-party taps
+brew install --cask bingwallpaper
+```
+
+Upgrade later with `brew upgrade --cask bingwallpaper`.
+
+### Manual download
+
 1. Download the latest `BingWallpaper_vX.Y.Z.zip` (or `.pkg`) from the
    [**Releases**](https://github.com/vb3/BingWallpaper-for-Mac/releases) page.
 2. For the `.zip`: unzip and move **BingWallpaper.app** to your `Applications` folder.
@@ -57,6 +69,7 @@ BingWallpaper does **not** update itself — there is no built-in self-updater, 
 security model simple (it never reaches out to download or launch installers on its own). To update,
 download the latest build from the
 [Releases page](https://github.com/vb3/BingWallpaper-for-Mac/releases) and replace the app.
+If you installed via Homebrew, run `brew upgrade --cask bingwallpaper` instead.
 
 ## Privacy & security
 
@@ -81,6 +94,11 @@ To run the test suite:
 xcodebuild -project BingWallpaper.xcodeproj -scheme BingWallpaper \
   -destination 'platform=macOS' test
 ```
+
+## Releasing
+
+Maintainer release steps — local build, GitHub release, and Homebrew cask bump — are documented
+in [`RELEASING.md`](RELEASING.md).
 
 ## Credits
 
