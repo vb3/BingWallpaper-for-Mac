@@ -28,7 +28,19 @@ class DownloadManager {
     
     static func downloadImageEntries(numberOfImages: Int) async throws -> [ImageEntry] {
         // TODO: @2h4u: idx is the start index of the batch of image descriptors that is downloaded, maybe add support for it so more images from the past can be used?
-        let response = try await downloadData(from: URL(string: "https://www.bing.com/HPImageArchive.aspx?format=js&n=\(numberOfImages)&idx=0")!)
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "www.bing.com"
+        components.path = "/HPImageArchive.aspx"
+        components.queryItems = [
+            URLQueryItem(name: "format", value: "js"),
+            URLQueryItem(name: "n", value: String(numberOfImages)),
+            URLQueryItem(name: "idx", value: "0"),
+        ]
+        guard let url = components.url else {
+            throw URLError(.badURL)
+        }
+        let response = try await downloadData(from: url)
         return try JSONDecoder().decode(ImageArchive.self, from: response.data).images
     }
     

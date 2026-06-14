@@ -6,3 +6,11 @@
 
 BingWallpaper is a menubar app for MacOS which automatically downloads the newest [bing wallpaper of the day](https://www.microsoft.com/bing/bing-wallpaper) 
 and sets it as wallpaper for all your monitors (and spaces!).
+
+## Updating
+
+BingWallpaper does not update itself. The built-in self-updater was removed to keep the app's
+security model simple — the app no longer reaches out to GitHub to check for, download, or launch
+installers on its own. To update, grab the latest build from the
+[Releases page](https://github.com/vb3/BingWallpaper-for-Mac/releases).
+

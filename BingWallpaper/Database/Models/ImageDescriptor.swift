@@ -12,6 +12,12 @@ public final class ImageDescriptor: NSManagedObject {
         return Image(descriptor: self)
     }()
     
+    private static let bingBaseUrl = URL(string: "https://www.bing.com")!
+    
+    private static func bingUrl(from relativeOrAbsolute: String) -> URL {
+        return URL(string: relativeOrAbsolute, relativeTo: bingBaseUrl)?.absoluteURL ?? bingBaseUrl
+    }
+    
     static func == (lhs: ImageDescriptor, rhs: ImageDescriptor) -> Bool {
         return lhs.startDate == rhs.startDate
     }
@@ -21,9 +27,9 @@ public final class ImageDescriptor: NSManagedObject {
         let imageDescriptor = ImageDescriptor(entity: entity, insertInto: managedContext)
         imageDescriptor.startDate = entry.startdate
         imageDescriptor.endDate = entry.enddate
-        imageDescriptor.imageUrl = URL(string: "https://www.bing.com" + entry.url.replacingOccurrences(of: "1920x1080", with: "UHD"))!
+        imageDescriptor.imageUrl = bingUrl(from: entry.url.replacingOccurrences(of: "1920x1080", with: "UHD"))
         imageDescriptor.descriptionString = entry.copyright
-        imageDescriptor.copyrightUrl = URL(string: entry.copyrightlink)!
+        imageDescriptor.copyrightUrl = bingUrl(from: entry.copyrightlink)
         return imageDescriptor
     }
 }

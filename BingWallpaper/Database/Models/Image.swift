@@ -17,7 +17,11 @@ class Image {
     
     init(descriptor: ImageDescriptor) {
         self.descriptor = descriptor
-        self.downloadPath = FileHandler.defaultBingWallpaperDirectory().appendingPathComponent(descriptor.startDate + ".jpg")
+        self.downloadPath = Image.downloadPath(for: descriptor)
+    }
+    
+    static func downloadPath(for descriptor: ImageDescriptor) -> URL {
+        return FileHandler.defaultBingWallpaperDirectory().appendingPathComponent(descriptor.startDate + ".jpg")
     }
     
     func loadFromDisk() async throws -> Data {
@@ -33,8 +37,7 @@ class Image {
     }
     
     static func isSavedToDisk(descriptor: ImageDescriptor) -> Bool {
-        let imagePath = FileHandler.defaultBingWallpaperDirectory() + "/" + descriptor.startDate + ".jpg"
-        return FileManager.default.fileExists(atPath: imagePath)
+        return FileManager.default.fileExists(atPath: downloadPath(for: descriptor).path)
     }
     
     func isOnDisk() -> Bool {
