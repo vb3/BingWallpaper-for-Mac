@@ -25,14 +25,14 @@ final class Database {
         do {
             container = try ModelContainer(for: ImageDescriptor.self)
         } catch {
-            logger.error("Persistent ModelContainer failed: \(error, privacy: .public). Falling back to an in-memory store.")
+            logger.error("Persistent ModelContainer failed: \(error). Falling back to an in-memory store.")
             do {
                 container = try ModelContainer(
                     for: ImageDescriptor.self,
                     configurations: ModelConfiguration(isStoredInMemoryOnly: true)
                 )
             } catch {
-                logger.fault("In-memory ModelContainer also failed: \(error, privacy: .public)")
+                logger.fault("In-memory ModelContainer also failed: \(error)")
                 fatalError("Unable to create SwiftData container")
             }
         }
@@ -43,7 +43,7 @@ final class Database {
         do {
             return try context.fetch(descriptor)
         } catch {
-            logger.error("Failed to fetch image descriptors: \(error, privacy: .public)")
+            logger.error("Failed to fetch image descriptors: \(error)")
             return []
         }
     }
@@ -72,7 +72,7 @@ final class Database {
         do {
             try context.save()
         } catch {
-            logger.error("Failed to save new image descriptors: \(error, privacy: .public)")
+            logger.error("Failed to save new image descriptors: \(error)")
             context.rollback()
             return []
         }

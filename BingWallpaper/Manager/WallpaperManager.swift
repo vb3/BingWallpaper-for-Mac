@@ -29,6 +29,12 @@ class WallpaperManager {
             name: NSWorkspace.didWakeNotification,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(WallpaperManager.screenParametersDidChange),
+            name: NSApplication.didChangeScreenParametersNotification,
+            object: nil
+        )
     }
     
     @objc func activeWorkspaceDidChange() {
@@ -36,6 +42,10 @@ class WallpaperManager {
     }
     
     @objc func workspaceDidWake() {
+        updateWallpaperIfNeeded()
+    }
+    
+    @objc func screenParametersDidChange() {
         updateWallpaperIfNeeded()
     }
     
@@ -54,7 +64,7 @@ class WallpaperManager {
                 try workspace.setDesktopImageURL(imageUrl, for: screen, options: [:])
             }
         } catch {
-            logger.error("Failed to set desktop image: \(error.localizedDescription, privacy: .public)")
+            logger.error("Failed to set desktop image: \(error.localizedDescription)")
         }
     }
 }

@@ -33,7 +33,6 @@ final class SettingsViewModel {
             }
         }
     }
-    var imageDownloadPath: URL
     var keepImageDuration: Int {
         didSet {
             guard keepImageDuration != oldValue else { return }
@@ -45,7 +44,6 @@ final class SettingsViewModel {
         let settings = Settings()
         launchAtLogin = settings.launchAtLogin
         hideMenuBarIcon = settings.hideMenuBarIcon
-        imageDownloadPath = settings.imageDownloadPath
         keepImageDuration = settings.keepImageDuration
         self.settings = settings
     }
@@ -70,7 +68,7 @@ final class SettingsViewModel {
         do {
             try settings.setLaunchAtLogin(newValue)
         } catch {
-            logger.error("Failed to toggle launch-at-login: \(String(describing: error), privacy: .public)")
+            logger.error("Failed to toggle launch-at-login: \(String(describing: error))")
             launchAtLogin = settings.launchAtLogin
             let capturedError = error
             Task { @MainActor in self.presentLaunchAtLoginError(capturedError) }
@@ -84,20 +82,6 @@ final class SettingsViewModel {
         }
     }
 
-    func chooseDownloadPath() {
-        let panel = NSOpenPanel()
-        panel.canChooseDirectories = true
-        panel.canChooseFiles = false
-        panel.allowsMultipleSelection = false
-        panel.canCreateDirectories = true
-        panel.showsHiddenFiles = false
-
-        if panel.runModal() == .OK, let url = panel.url {
-            settings.imageDownloadPath = url
-            imageDownloadPath = url
-        }
-    }
-
     func resetDatabase() {
         logger.info("Resetting Database...")
         let dateFormatter = DateFormatter()
@@ -107,7 +91,7 @@ final class SettingsViewModel {
         do {
             try Database.instance.deleteImageDescriptors(olderThan: oldestDateStringToKeep)
         } catch {
-            logger.error("Failed resetting Database: \(error.localizedDescription, privacy: .public)")
+            logger.error("Failed resetting Database: \(error.localizedDescription)")
             presentAlert(title: "Failed to reset Database", message: error.localizedDescription)
         }
 
@@ -153,17 +137,6 @@ struct SettingsView: View {
             ))
 
             Toggle("Hide menu bar icon", isOn: $model.hideMenuBarIcon)
-
-            LabeledContent("Save images to") {
-                Button {
-                    model.chooseDownloadPath()
-                } label: {
-                    Text(model.imageDownloadPath.path)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
-                .help(model.imageDownloadPath.path)
-            }
 
             VStack(alignment: .leading) {
                 Text(model.keepImagesLabel)

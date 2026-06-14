@@ -26,26 +26,14 @@ class FileHandler {
     }
     
     static func createWallpaperFolderIfNeeded() {
-        let bingDir: String = Settings().imageDownloadPath.path
+        let bingDir: String = defaultBingWallpaperDirectory()
         
         if FileManager.default.fileExists(atPath: bingDir) { return }
         
         do {
             try FileManager.default.createDirectory(atPath: bingDir, withIntermediateDirectories: false)
         } catch {
-            logger.error("Failed to create bing-wallpapers folder with error: \(error.localizedDescription, privacy: .public)")
-        }
-    }
-    
-    static func saveImageToDisk(image: NSImage, toUrl: URL) {
-        guard let tiffRepresentation = image.tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiffRepresentation),
-              let imageData = bitmap.representation(using: .jpeg, properties: [:]) else { return }
-        
-        do {
-            try imageData.write(to: toUrl, options: .withoutOverwriting)
-        } catch {
-            logger.error("Failed to save image to disk with error: \(error.localizedDescription, privacy: .public)")
+            logger.error("Failed to create bing-wallpapers folder with error: \(error.localizedDescription)")
         }
     }
     
@@ -55,9 +43,9 @@ class FileHandler {
     
     static func getSavedImages() -> [URL] {
         do {
-            return try FileManager.default.contentsOfDirectory(at: Settings().imageDownloadPath, includingPropertiesForKeys: nil, options: FileManager.DirectoryEnumerationOptions.skipsHiddenFiles)
+            return try FileManager.default.contentsOfDirectory(at: defaultBingWallpaperDirectory(), includingPropertiesForKeys: nil, options: FileManager.DirectoryEnumerationOptions.skipsHiddenFiles)
         } catch {
-            logger.error("Failed to list saved images: \(error.localizedDescription, privacy: .public)")
+            logger.error("Failed to list saved images: \(error.localizedDescription)")
             return []
         }
     }
@@ -66,7 +54,7 @@ class FileHandler {
         do {
             return try FileManager.default.removeItem(at: imagePath)
         } catch {
-            logger.error("Failed to remove image at \(imagePath.path, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            logger.error("Failed to remove image at \(imagePath.path, privacy: .private): \(error.localizedDescription)")
             return
         }
     }

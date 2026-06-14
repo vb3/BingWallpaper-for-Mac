@@ -95,7 +95,7 @@ class MenuController: NSObject {
         }
 
         settingsWindow?.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.activate()
     }
     
     @MainActor
