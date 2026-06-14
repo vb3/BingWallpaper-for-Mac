@@ -14,7 +14,7 @@ public final class ImageDescriptor: NSManagedObject {
     
     private static let bingBaseUrl = URL(string: "https://www.bing.com")!
     
-    private static func bingUrl(from relativeOrAbsolute: String) -> URL {
+    static func bingUrl(from relativeOrAbsolute: String) -> URL {
         return URL(string: relativeOrAbsolute, relativeTo: bingBaseUrl)?.absoluteURL ?? bingBaseUrl
     }
     

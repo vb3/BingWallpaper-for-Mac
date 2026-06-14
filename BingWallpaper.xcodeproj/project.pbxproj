@@ -32,6 +32,7 @@
 		E56BD76C2BB007450013F1A2 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56BD76B2BB007450013F1A2 /* Database.swift */; };
 		E578ABE22FBF53F800D02866 /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = E578ABE12FBF53D700D02866 /* Logging.swift */; };
 		E58DDD51290F8772005E6E03 /* UpdateTimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E58DDD50290F8772005E6E03 /* UpdateTimeTests.swift */; };
+		A1B2C3D4E5F600000000AA02 /* UrlAndPathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F600000000AA01 /* UrlAndPathTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,6 +77,7 @@
 		E578ABE12FBF53D700D02866 /* Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logging.swift; sourceTree = "<group>"; };
 		E58DDD47290F874F005E6E03 /* BingWallpaperTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BingWallpaperTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E58DDD50290F8772005E6E03 /* UpdateTimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateTimeTests.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F600000000AA01 /* UrlAndPathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UrlAndPathTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -226,6 +228,7 @@
 			isa = PBXGroup;
 			children = (
 				E58DDD50290F8772005E6E03 /* UpdateTimeTests.swift */,
+				A1B2C3D4E5F600000000AA01 /* UrlAndPathTests.swift */,
 			);
 			path = BingWallpaperTests;
 			sourceTree = "<group>";
@@ -359,6 +362,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E58DDD51290F8772005E6E03 /* UpdateTimeTests.swift in Sources */,
+				A1B2C3D4E5F600000000AA02 /* UrlAndPathTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

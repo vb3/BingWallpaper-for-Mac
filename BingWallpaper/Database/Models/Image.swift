@@ -21,7 +21,11 @@ class Image {
     }
     
     static func downloadPath(for descriptor: ImageDescriptor) -> URL {
-        return FileHandler.defaultBingWallpaperDirectory().appendingPathComponent(descriptor.startDate + ".jpg")
+        return downloadPath(forStartDate: descriptor.startDate)
+    }
+    
+    static func downloadPath(forStartDate startDate: String) -> URL {
+        return FileHandler.defaultBingWallpaperDirectory().appendingPathComponent(startDate + ".jpg")
     }
     
     func loadFromDisk() async throws -> Data {
