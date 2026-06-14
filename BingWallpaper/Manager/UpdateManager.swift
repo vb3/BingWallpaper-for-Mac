@@ -12,7 +12,8 @@ protocol UpdateManagerDelegate: AnyObject {
     func downloadedNewImage()
 }
 
-final class UpdateManager: @unchecked Sendable {
+@MainActor
+final class UpdateManager {
     private static let ACTIVITY_IDENTIFIER = "com.2h4u.BingWallpaper.update"
 
     weak var delegate: UpdateManagerDelegate?
@@ -109,21 +110,22 @@ final class UpdateManager: @unchecked Sendable {
             
            let descriptors = Database.instance.updateImageDescriptors(from: imageEntries)
             
-           let newDescriptors = descriptors
-                .filter { $0.image.isOnDisk() == false }
+           let downloadJobs = descriptors
+                .filter { Image.isSavedToDisk(descriptor: $0) == false }
+                .map { (imageUrl: $0.imageUrl, downloadPath: Image.downloadPath(for: $0)) }
             
-            for descriptor in newDescriptors {
+            for job in downloadJobs {
                 do {
-                    try await descriptor.image.downloadAndSaveToDisk()
+                    try await Image.downloadAndSave(from: job.imageUrl, to: job.downloadPath)
                 } catch {
-                    logger.error("Failed to download and store image \(descriptor.imageUrl, privacy: .public) with error: \(error.localizedDescription, privacy: .public)")
+                    logger.error("Failed to download and store image \(job.imageUrl, privacy: .public) with error: \(error.localizedDescription, privacy: .public)")
                 }
             }
             
             await MainActor.run { [weak self] in
                 guard let self = self else { return }
                 self.cleanup()
-                if newDescriptors.isEmpty == false {
+                if downloadJobs.isEmpty == false {
                     self.delegate?.downloadedNewImage()
                 }
 

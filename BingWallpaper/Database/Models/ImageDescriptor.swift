@@ -8,9 +8,6 @@ public final class ImageDescriptor: NSManagedObject {
     @NSManaged var imageUrl: URL
     @NSManaged var descriptionString: String
     @NSManaged var copyrightUrl: URL
-    lazy var image: Image = {
-        return Image(descriptor: self)
-    }()
     
     private static let bingBaseUrl = URL(string: "https://www.bing.com")!
     

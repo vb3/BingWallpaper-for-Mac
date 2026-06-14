@@ -14,6 +14,7 @@ private let logger = Logger(
     category: Logging.Category.Database.rawValue
 )
 
+@MainActor
 class Database {
     static let instance = Database()
     

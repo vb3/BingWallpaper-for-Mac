@@ -7,6 +7,7 @@ private let logger = Logger(
     category: Logging.Category.Wallpaper.rawValue
 )
 
+@MainActor
 class WallpaperManager {
     private var imageDescriptor: ImageDescriptor?
     static let shared = WallpaperManager()
@@ -45,7 +46,7 @@ class WallpaperManager {
     
     private func updateWallpaperIfNeeded() {
         guard let descriptor = imageDescriptor else { return }
-        let imageUrl = descriptor.image.downloadPath
+        let imageUrl = Image.downloadPath(for: descriptor)
         let workspace = NSWorkspace.shared
         
         do {

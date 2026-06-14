@@ -6,6 +6,7 @@ private let logger = Logger(
     category: Logging.Category.Menu.rawValue
 )
 
+@MainActor
 class MenuController: NSObject {
     private var statusItem: NSStatusItem?
     private var menu: NSMenu?
@@ -145,15 +146,14 @@ class MenuController: NSObject {
         guard let menu = menu else { return }
         
         let descriptor = descriptors[safe: newSelectedDescriptorIndex]
-        Task {
-            guard let descriptor else { return }
+        Task { [weak self] in
+            guard let self, let descriptor else { return }
+            let downloadPath = Image.downloadPath(for: descriptor)
             do {
-                let imageData = try await descriptor.image.loadFromDisk()
-                await MainActor.run { [weak self] in
-                    self?.imageSelectorView.imageView.image = NSImage(data: imageData)
-                }
+                let imageData = try await Image.loadData(from: downloadPath)
+                self.imageSelectorView.imageView.image = NSImage(data: imageData)
             } catch {
-                logger.error("Failed to load image from disk: \(String(describing: descriptor), privacy: .public)")
+                logger.error("Failed to load image from disk: \(downloadPath.lastPathComponent, privacy: .public)")
             }
         }
         
@@ -193,7 +193,7 @@ class MenuController: NSObject {
     @MainActor
     private func showNewestImage() {
         self.descriptors = Database.instance.allImageDescriptors()
-            .filter { $0.image.isOnDisk() }
+            .filter { Image.isSavedToDisk(descriptor: $0) }
         selectedDescriptorIndex = self.descriptors.firstIndex(where: { $0 == self.descriptors.last }) ?? self.descriptors.endIndex
         updateSelectedImage(newSelectedDescriptorIndex: selectedDescriptorIndex)
     }
