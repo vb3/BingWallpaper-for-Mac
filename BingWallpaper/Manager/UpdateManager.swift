@@ -14,7 +14,7 @@ protocol UpdateManagerDelegate: AnyObject {
 
 @MainActor
 final class UpdateManager {
-    private static let ACTIVITY_IDENTIFIER = "com.2h4u.BingWallpaper.update"
+    private static let ACTIVITY_IDENTIFIER = "com.vb3.BingWallpaper.update"
     private static let RETRY_INTERVAL: TimeInterval = 15 * 60
 
     weak var delegate: UpdateManagerDelegate?

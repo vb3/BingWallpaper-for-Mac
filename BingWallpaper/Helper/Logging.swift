@@ -8,7 +8,7 @@
 class Logging {
     private init() { }
     
-    static let subsystem = "com.2h4u.BingWallpaper"
+    static let subsystem = "com.vb3.BingWallpaper"
     
     enum Category: String {
         case Settings
