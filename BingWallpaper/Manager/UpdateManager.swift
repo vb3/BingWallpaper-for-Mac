@@ -64,9 +64,6 @@ final class UpdateManager: @unchecked Sendable {
         
     @MainActor
     private func cleanup() {
-        // TODO: @2h4u: find entries with same startDate and remove them
-        // TODO: @2h4u: probably do this in a migration function in appdelegate
-        
         guard let oldestDateStringToKeep = settings.oldestDateStringToKeep() else { return }
         try? Database.instance.deleteImageDescriptors(olderThan: oldestDateStringToKeep)
         FileHandler.deleteOldImages(oldestDateStringToKeep: oldestDateStringToKeep)

@@ -17,7 +17,6 @@ class Logging {
         case FileHandler
         case Wallpaper
         case Update
-        case AppUpdate
         case Menu
     }
 }

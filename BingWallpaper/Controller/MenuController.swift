@@ -78,8 +78,12 @@ class MenuController: NSObject {
     
     @MainActor
     @objc func showSettingsWc(sender: NSMenuItem?) {
-        (settingsWc.contentViewController as! SettingsVc).delegate = self
-        (settingsWc.contentViewController as! SettingsVc).updateManager = updateManager
+        guard let settingsVc = settingsWc.contentViewController as? SettingsVc else {
+            logger.error("Settings window controller has no SettingsVc content view controller")
+            return
+        }
+        settingsVc.delegate = self
+        settingsVc.updateManager = updateManager
         settingsWc.showWindow(self)
         settingsWc.window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -165,9 +169,12 @@ class MenuController: NSObject {
         if let oldTextItem = menu.item(withTag: MenuController.TEXT_VIEW_TAG) {
             menu.removeItem(oldTextItem)
         }
-        let imageView = menu.item(withTag: MenuController.IMAGE_VIEW_TAG)!
-        let textViewIndex = menu.index(of: imageView) + 1
-        menu.insertItem(textItem, at: textViewIndex)
+        if let imageView = menu.item(withTag: MenuController.IMAGE_VIEW_TAG) {
+            let textViewIndex = menu.index(of: imageView) + 1
+            menu.insertItem(textItem, at: textViewIndex)
+        } else {
+            logger.error("Image menu item not found; skipping text view insertion")
+        }
         
         imageSelectorView.leftButton.isEnabled = descriptors.indices.contains(newSelectedDescriptorIndex - 1)
         imageSelectorView.rightButton.isEnabled = descriptors.indices.contains(newSelectedDescriptorIndex + 1)

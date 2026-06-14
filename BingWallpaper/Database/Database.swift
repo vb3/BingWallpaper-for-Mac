@@ -119,10 +119,15 @@ class Database {
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "DataModel", managedObjectModel: managedObjectModel())
         
-        container.loadPersistentStores(completionHandler: { _, error in
-            if let error = error as NSError? {
-                fatalError("Unresolved error \(error), \(error.userInfo)")
-            }
+        container.loadPersistentStores(completionHandler: { [weak container] _, error in
+            guard let error = error as NSError? else { return }
+            logger.error("Could not load persistent store: \(error, privacy: .public), \(error.userInfo, privacy: .public). Falling back to an in-memory store.")
+            container?.persistentStoreDescriptions.forEach { $0.type = NSInMemoryStoreType }
+            container?.loadPersistentStores(completionHandler: { _, retryError in
+                if let retryError = retryError as NSError? {
+                    logger.error("Could not load in-memory fallback store: \(retryError, privacy: .public), \(retryError.userInfo, privacy: .public)")
+                }
+            })
         })
         return container
     }()

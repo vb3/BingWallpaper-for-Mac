@@ -10,7 +10,11 @@ class SettingsWc: NSWindowController {
     }
     
     static func instance() -> SettingsWc {
-        let mainStoryboard = NSStoryboard.init(name: NSStoryboard.Name("Main"), bundle: nil)
-        return mainStoryboard.instantiateController(withIdentifier: NSStoryboard.SceneIdentifier(String(describing: self))) as! SettingsWc
+        let mainStoryboard = NSStoryboard(name: NSStoryboard.Name("Main"), bundle: nil)
+        let identifier = NSStoryboard.SceneIdentifier(String(describing: self))
+        guard let windowController = mainStoryboard.instantiateController(withIdentifier: identifier) as? SettingsWc else {
+            fatalError("Main.storyboard is missing a \(identifier) scene of type SettingsWc")
+        }
+        return windowController
     }
 }
