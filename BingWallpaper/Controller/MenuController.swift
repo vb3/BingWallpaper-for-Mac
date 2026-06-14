@@ -1,5 +1,6 @@
 import Cocoa
 import OSLog
+import SwiftUI
 
 private let logger = Logger(
     subsystem: Logging.subsystem,
@@ -17,7 +18,8 @@ class MenuController: NSObject {
     var updateManager: UpdateManager?
     private static let IMAGE_VIEW_TAG = 6
     private static let TEXT_VIEW_TAG = 7
-    private lazy var settingsWc = SettingsWc.instance()
+    private var settingsWindow: NSWindow?
+    private lazy var settingsModel = SettingsViewModel()
     
     // MARK: - UI setup
     
@@ -79,14 +81,20 @@ class MenuController: NSObject {
     
     @MainActor
     @objc func showSettingsWc(sender: NSMenuItem?) {
-        guard let settingsVc = settingsWc.contentViewController as? SettingsVc else {
-            logger.error("Settings window controller has no SettingsVc content view controller")
-            return
+        settingsModel.menuBarIconController = self
+        settingsModel.updateManager = updateManager
+        settingsModel.refreshFromSettings()
+
+        if settingsWindow == nil {
+            let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+            let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(model: settingsModel)))
+            window.title = "BingWallpaper v\(version)"
+            window.styleMask = [.titled, .closable, .miniaturizable]
+            window.isReleasedWhenClosed = false
+            settingsWindow = window
         }
-        settingsVc.delegate = self
-        settingsVc.updateManager = updateManager
-        settingsWc.showWindow(self)
-        settingsWc.window?.makeKeyAndOrderFront(nil)
+
+        settingsWindow?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
     
@@ -213,7 +221,7 @@ extension MenuController: NSMenuDelegate {
     }
 }
 
-extension MenuController: SettingsVcDelegate {
+extension MenuController: MenuBarIconControlling {
     func showMenuBarIcon() {
         setup()
     }

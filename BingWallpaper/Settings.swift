@@ -148,3 +148,26 @@ public class Settings {
     private static let LAST_UPDATE = "LAST_UPDATE"
     private static let KEEP_IMAGE_DURATION = "KEEP_IMAGE_DURATION"
 }
+
+enum KeepImageDuration: Int {
+    case five
+    case ten
+    case fifty
+    case onehundred
+    case infinite
+    
+    var text: String {
+        switch self {
+        case .five:
+            return "5"
+        case .ten:
+            return "10"
+        case .fifty:
+            return "50"
+        case .onehundred:
+            return "100"
+        case .infinite:
+            return "∞"
+        }
+    }
+}
