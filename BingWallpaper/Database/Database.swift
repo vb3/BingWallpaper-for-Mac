@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Cocoa
+import SwiftData
 import OSLog
 
 private let logger = Logger(
@@ -15,121 +15,68 @@ private let logger = Logger(
 )
 
 @MainActor
-class Database {
+final class Database {
     static let instance = Database()
     
-    private init() { }
+    let container: ModelContainer
+    private var context: ModelContext { container.mainContext }
     
-    @MainActor
-    func allImageDescriptors() -> [ImageDescriptor] {
-        let fetchRequest = NSFetchRequest<ImageDescriptor>(entityName: "ImageDescriptor")
-        
+    private init() {
         do {
-            return try persistentContainer.viewContext
-                .fetch(fetchRequest)
-                .sorted()
-        } catch let error as NSError {
-            logger.error("Could not fetch. \(error, privacy: .public), \(error.userInfo, privacy: .public)")
+            container = try ModelContainer(for: ImageDescriptor.self)
+        } catch {
+            logger.error("Persistent ModelContainer failed: \(error, privacy: .public). Falling back to an in-memory store.")
+            do {
+                container = try ModelContainer(
+                    for: ImageDescriptor.self,
+                    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+                )
+            } catch {
+                logger.fault("In-memory ModelContainer also failed: \(error, privacy: .public)")
+                fatalError("Unable to create SwiftData container")
+            }
+        }
+    }
+    
+    func allImageDescriptors() -> [ImageDescriptor] {
+        let descriptor = FetchDescriptor<ImageDescriptor>(sortBy: [SortDescriptor(\.startDate)])
+        do {
+            return try context.fetch(descriptor)
+        } catch {
+            logger.error("Failed to fetch image descriptors: \(error, privacy: .public)")
             return []
         }
     }
     
-    @MainActor
     func deleteImageDescriptors(olderThan oldestDateStringToKeep: String) throws {
-        let managedContext = persistentContainer.viewContext
-        
-        allImageDescriptors()
-            .filter { $0.startDate <= oldestDateStringToKeep }
-            .forEach { managedContext.delete($0) }
-        
-        try managedContext.save()
+        try context.delete(
+            model: ImageDescriptor.self,
+            where: #Predicate { $0.startDate <= oldestDateStringToKeep }
+        )
+        try context.save()
     }
     
-    @MainActor
     func updateImageDescriptors(from imageEntries: [DownloadManager.ImageEntry]) -> [ImageDescriptor] {
-        let managedContext = persistentContainer.viewContext
-        let preservedStartDates = allImageDescriptors()
-            .map { $0.startDate }
+        let existingStartDates = Set(allImageDescriptors().map { $0.startDate })
+        let uniqueIncoming = Dictionary(
+            imageEntries.map { ($0.startdate, $0) },
+            uniquingKeysWith: { first, _ in first }
+        )
         
-        let imageDescriptors = imageEntries
-            .filter { imageEntry in preservedStartDates.contains(imageEntry.startdate) == false }
-            .map { image -> ImageDescriptor in
-                ImageDescriptor.instantiate(from: image, in: managedContext)
-            }
+        let newDescriptors = uniqueIncoming.values
+            .filter { existingStartDates.contains($0.startdate) == false }
+            .map { ImageDescriptor.make(from: $0) }
+        
+        newDescriptors.forEach { context.insert($0) }
         
         do {
-            try managedContext.save()
-        } catch let error as NSError {
-            logger.error("Could not save. \(error, privacy: .public), \(error.userInfo, privacy: .public)")
+            try context.save()
+        } catch {
+            logger.error("Failed to save new image descriptors: \(error, privacy: .public)")
+            context.rollback()
+            return []
         }
         
-        return imageDescriptors
+        return newDescriptors
     }
-    
-    
-    // MARK: - Core Data stack
-    
-    private func entityDescription() -> NSEntityDescription {
-        let entity = NSEntityDescription()
-        entity.name = "ImageDescriptor"
-        entity.managedObjectClassName = NSStringFromClass(ImageDescriptor.self)
-        
-        // Attributes
-        let startDateAttr = NSAttributeDescription()
-        startDateAttr.name = "startDate"
-        startDateAttr.attributeType = .stringAttributeType
-        startDateAttr.isOptional = false
-        
-        let endDateAttr = NSAttributeDescription()
-        endDateAttr.name = "endDate"
-        endDateAttr.attributeType = .stringAttributeType
-        endDateAttr.isOptional = false
-        
-        let imageUrlAttr = NSAttributeDescription()
-        imageUrlAttr.name = "imageUrl"
-        imageUrlAttr.attributeType = .URIAttributeType
-        imageUrlAttr.isOptional = false
-        
-        let descriptionStringAttr = NSAttributeDescription()
-        descriptionStringAttr.name = "descriptionString"
-        descriptionStringAttr.attributeType = .stringAttributeType
-        descriptionStringAttr.isOptional = false
-        
-        let copyrightUrlAttr = NSAttributeDescription()
-        copyrightUrlAttr.name = "copyrightUrl"
-        copyrightUrlAttr.attributeType = .URIAttributeType
-        copyrightUrlAttr.isOptional = false
-        
-        entity.properties = [
-            startDateAttr,
-            endDateAttr,
-            imageUrlAttr,
-            descriptionStringAttr,
-            copyrightUrlAttr
-        ]
-        
-        return entity
-    }
-    
-    private func managedObjectModel() -> NSManagedObjectModel {
-        let model = NSManagedObjectModel()
-        model.entities = [entityDescription()]
-        return model
-    }
-    
-    lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "DataModel", managedObjectModel: managedObjectModel())
-        
-        container.loadPersistentStores(completionHandler: { [weak container] _, error in
-            guard let error = error as NSError? else { return }
-            logger.error("Could not load persistent store: \(error, privacy: .public), \(error.userInfo, privacy: .public). Falling back to an in-memory store.")
-            container?.persistentStoreDescriptions.forEach { $0.type = NSInMemoryStoreType }
-            container?.loadPersistentStores(completionHandler: { _, retryError in
-                if let retryError = retryError as NSError? {
-                    logger.error("Could not load in-memory fallback store: \(retryError, privacy: .public), \(retryError.userInfo, privacy: .public)")
-                }
-            })
-        })
-        return container
-    }()
 }

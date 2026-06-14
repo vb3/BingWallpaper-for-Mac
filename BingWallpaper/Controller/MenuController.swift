@@ -194,7 +194,7 @@ class MenuController: NSObject {
     private func showNewestImage() {
         self.descriptors = Database.instance.allImageDescriptors()
             .filter { Image.isSavedToDisk(descriptor: $0) }
-        selectedDescriptorIndex = self.descriptors.firstIndex(where: { $0 == self.descriptors.last }) ?? self.descriptors.endIndex
+        selectedDescriptorIndex = self.descriptors.isEmpty ? self.descriptors.endIndex : self.descriptors.count - 1
         updateSelectedImage(newSelectedDescriptorIndex: selectedDescriptorIndex)
     }
 }

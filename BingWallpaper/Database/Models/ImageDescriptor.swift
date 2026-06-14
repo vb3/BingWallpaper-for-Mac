@@ -1,38 +1,35 @@
-import AppKit
-import CoreData
 import Foundation
+import SwiftData
 
-public final class ImageDescriptor: NSManagedObject {
-    @NSManaged var startDate: String
-    @NSManaged var endDate: String
-    @NSManaged var imageUrl: URL
-    @NSManaged var descriptionString: String
-    @NSManaged var copyrightUrl: URL
+@Model
+final class ImageDescriptor {
+    @Attribute(.unique) var startDate: String
+    var endDate: String
+    var imageUrl: URL
+    var descriptionString: String
+    var copyrightUrl: URL
+    
+    init(startDate: String, endDate: String, imageUrl: URL, descriptionString: String, copyrightUrl: URL) {
+        self.startDate = startDate
+        self.endDate = endDate
+        self.imageUrl = imageUrl
+        self.descriptionString = descriptionString
+        self.copyrightUrl = copyrightUrl
+    }
+    
+    static func make(from entry: DownloadManager.ImageEntry) -> ImageDescriptor {
+        return ImageDescriptor(
+            startDate: entry.startdate,
+            endDate: entry.enddate,
+            imageUrl: bingUrl(from: entry.url.replacingOccurrences(of: "1920x1080", with: "UHD")),
+            descriptionString: entry.copyright,
+            copyrightUrl: bingUrl(from: entry.copyrightlink)
+        )
+    }
     
     private static let bingBaseUrl = URL(string: "https://www.bing.com")!
     
     static func bingUrl(from relativeOrAbsolute: String) -> URL {
         return URL(string: relativeOrAbsolute, relativeTo: bingBaseUrl)?.absoluteURL ?? bingBaseUrl
-    }
-    
-    static func == (lhs: ImageDescriptor, rhs: ImageDescriptor) -> Bool {
-        return lhs.startDate == rhs.startDate
-    }
-    
-    static func instantiate(from entry: DownloadManager.ImageEntry, in managedContext: NSManagedObjectContext) -> ImageDescriptor {
-        let entity = NSEntityDescription.entity(forEntityName: "ImageDescriptor", in: managedContext)!
-        let imageDescriptor = ImageDescriptor(entity: entity, insertInto: managedContext)
-        imageDescriptor.startDate = entry.startdate
-        imageDescriptor.endDate = entry.enddate
-        imageDescriptor.imageUrl = bingUrl(from: entry.url.replacingOccurrences(of: "1920x1080", with: "UHD"))
-        imageDescriptor.descriptionString = entry.copyright
-        imageDescriptor.copyrightUrl = bingUrl(from: entry.copyrightlink)
-        return imageDescriptor
-    }
-}
-
-extension ImageDescriptor: Comparable {
-    public static func < (lhs: ImageDescriptor, rhs: ImageDescriptor) -> Bool {
-        return lhs.startDate < rhs.startDate
     }
 }

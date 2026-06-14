@@ -13,7 +13,7 @@ class DownloadManager {
         let images: [ImageEntry]
     }
     
-    struct ImageEntry: Codable {
+    struct ImageEntry: Codable, Sendable {
         let url: String
         let enddate: String
         let startdate: String
