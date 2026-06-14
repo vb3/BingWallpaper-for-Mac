@@ -15,10 +15,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         menuController.updateManager = updateManager
         menuController.setup()
-
-        Task {
-            await AppUpdateManager.checkForUpdate()
-        }
     }
     
     func applicationDidBecomeActive(_ notification: Notification) {

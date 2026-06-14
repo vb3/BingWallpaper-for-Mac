@@ -65,10 +65,6 @@ class MenuController: NSObject {
         
         menu.addItem(NSMenuItem.separator())
         
-        let appUpdateItem = NSMenuItem(title: "Check for app update", action: #selector(checkForAppUpdate), keyEquivalent: "")
-        appUpdateItem.target = self
-        menu.addItem(appUpdateItem)
-        
         let settingsItem = NSMenuItem(title: "Settings", action: #selector(showSettingsWc), keyEquivalent: "")
         settingsItem.target = self
         menu.addItem(settingsItem)
@@ -92,13 +88,6 @@ class MenuController: NSObject {
     @MainActor
     @objc func refreshImages(sender: NSMenuItem) {
         updateManager?.update()
-    }
-    
-    @MainActor
-    @objc func checkForAppUpdate(sender: NSMenuItem) {
-        Task {
-            await AppUpdateManager.checkForUpdate()
-        }
     }
     
     @MainActor
