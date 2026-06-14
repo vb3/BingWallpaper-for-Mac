@@ -68,7 +68,7 @@ class MenuController: NSObject {
         
         menu.addItem(NSMenuItem.separator())
         
-        let settingsItem = NSMenuItem(title: "Settings", action: #selector(showSettingsWc), keyEquivalent: "")
+        let settingsItem = NSMenuItem(title: "Settings", action: #selector(showSettingsWc), keyEquivalent: ",")
         settingsItem.target = self
         menu.addItem(settingsItem)
         
@@ -199,10 +199,18 @@ class MenuController: NSObject {
     }
     
     @MainActor
-    private func showNewestImage() {
-        self.descriptors = Database.instance.allImageDescriptors()
+    private func reloadDescriptors() {
+        descriptors = Database.instance.allImageDescriptors()
             .filter { Image.isSavedToDisk(descriptor: $0) }
-        selectedDescriptorIndex = self.descriptors.isEmpty ? self.descriptors.endIndex : self.descriptors.count - 1
+        if descriptors.indices.contains(selectedDescriptorIndex) == false {
+            selectedDescriptorIndex = descriptors.isEmpty ? 0 : descriptors.count - 1
+        }
+    }
+    
+    @MainActor
+    private func showNewestImage() {
+        reloadDescriptors()
+        selectedDescriptorIndex = descriptors.isEmpty ? 0 : descriptors.count - 1
         updateSelectedImage(newSelectedDescriptorIndex: selectedDescriptorIndex)
     }
 }
@@ -217,6 +225,7 @@ extension MenuController: UpdateManagerDelegate {
 
 extension MenuController: NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
+        reloadDescriptors()
         updateImageSelectorView(newSelectedDescriptorIndex: selectedDescriptorIndex)
     }
 }
