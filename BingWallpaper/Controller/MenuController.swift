@@ -39,7 +39,7 @@ class MenuController: NSObject {
         let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "photo.artframe", accessibilityDescription: "BingWallpaper")
+            button.image = NSImage(systemSymbolName: "photo", accessibilityDescription: "BingWallpaper")
         }
         
         return statusItem
