@@ -21,9 +21,14 @@ class DownloadManager {
         let copyrightlink: String
     }
     
-    private static func downloadData(from url: URL) async throws-> DownloadResponse {
+    private static func downloadData(from url: URL) async throws -> Data {
         let (data, urlResponse) = try await URLSession.shared.data(from: url)
-        return DownloadResponse(data: data, urlResponse: urlResponse)
+        if let httpResponse = urlResponse as? HTTPURLResponse,
+           (200..<300).contains(httpResponse.statusCode) == false {
+            logger.error("Request failed with status \(httpResponse.statusCode, privacy: .public)")
+            throw ImageError.badServerResponse(statusCode: httpResponse.statusCode)
+        }
+        return data
     }
     
     static func downloadImageEntries(numberOfImages: Int) async throws -> [ImageEntry] {
@@ -40,11 +45,11 @@ class DownloadManager {
         guard let url = components.url else {
             throw URLError(.badURL)
         }
-        let response = try await downloadData(from: url)
-        return try JSONDecoder().decode(ImageArchive.self, from: response.data).images
+        let data = try await downloadData(from: url)
+        return try JSONDecoder().decode(ImageArchive.self, from: data).images
     }
     
     static func downloadBinary(from url: URL) async throws -> Data {
-        return try await downloadData(from: url).data
+        return try await downloadData(from: url)
     }
 }

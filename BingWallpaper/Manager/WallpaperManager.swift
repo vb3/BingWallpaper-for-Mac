@@ -58,13 +58,20 @@ class WallpaperManager {
         guard let descriptor = imageDescriptor else { return }
         let imageUrl = Image.downloadPath(for: descriptor)
         let workspace = NSWorkspace.shared
-        
-        do {
-            for screen in NSScreen.screens {
-                try workspace.setDesktopImageURL(imageUrl, for: screen, options: [:])
+        let targetPath = imageUrl.standardizedFileURL.path
+
+        for screen in NSScreen.screens {
+            // macOS keeps a separate wallpaper per Space, so the current image
+            // must be queried live for each screen (never cached): a newly
+            // created Space reports a different/absent URL and still gets set.
+            if workspace.desktopImageURL(for: screen)?.standardizedFileURL.path == targetPath {
+                continue
             }
-        } catch {
-            logger.error("Failed to set desktop image: \(error.localizedDescription)")
+            do {
+                try workspace.setDesktopImageURL(imageUrl, for: screen, options: [:])
+            } catch {
+                logger.error("Failed to set desktop image: \(error.localizedDescription)")
+            }
         }
     }
 }

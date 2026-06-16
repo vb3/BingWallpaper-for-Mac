@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import AppKit
 
 enum Image {
     static func downloadPath(for descriptor: ImageDescriptor) -> URL {
@@ -26,6 +27,9 @@ enum Image {
     
     static func downloadAndSave(from imageUrl: URL, to downloadPath: URL) async throws {
         let imageData = try await DownloadManager.downloadBinary(from: imageUrl)
+        guard NSImage(data: imageData) != nil else {
+            throw ImageError.dataNotValid
+        }
         try FileHandler.saveImageDataToDisk(imageData: imageData, toUrl: downloadPath)
     }
 }

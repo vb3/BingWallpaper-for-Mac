@@ -20,6 +20,8 @@ class MenuController: NSObject {
     private static let TEXT_VIEW_TAG = 7
     private var settingsWindow: NSWindow?
     private lazy var settingsModel = SettingsViewModel()
+    private var textView: TextView?
+    private var imageLoadToken = 0
     
     // MARK: - UI setup
     
@@ -59,7 +61,16 @@ class MenuController: NSObject {
         imageItem.view = imageSelectorView
         imageItem.tag = MenuController.IMAGE_VIEW_TAG
         menu.addItem(imageItem)
-        
+
+        let textItem = NSMenuItem(title: "", action: nil, keyEquivalent: "")
+        textItem.tag = MenuController.TEXT_VIEW_TAG
+        let textView = TextView(frame: CGRect(x: 0, y: 0, width: menu.size.width, height: 0))
+        textView.button.action = #selector(textItemAction)
+        textView.button.target = self
+        textItem.view = textView
+        self.textView = textView
+        menu.addItem(textItem)
+
         menu.addItem(NSMenuItem.separator())
         
         let refreshItem = NSMenuItem(title: "Refresh Images", action: #selector(refreshImages), keyEquivalent: "")
@@ -151,39 +162,28 @@ class MenuController: NSObject {
     
     @MainActor
     private func updateImageSelectorView(newSelectedDescriptorIndex: Int) {
-        guard let menu = menu else { return }
-        
         let descriptor = descriptors[safe: newSelectedDescriptorIndex]
-        Task { [weak self] in
-            guard let self, let descriptor else { return }
-            let downloadPath = Image.downloadPath(for: descriptor)
-            do {
-                let imageData = try await Image.loadData(from: downloadPath)
-                self.imageSelectorView.imageView.image = NSImage(data: imageData)
-            } catch {
-                logger.error("Failed to load image from disk: \(downloadPath.lastPathComponent, privacy: .public)")
+
+        imageLoadToken += 1
+        let token = imageLoadToken
+        if let descriptor {
+            Task { [weak self] in
+                guard let self else { return }
+                let downloadPath = Image.downloadPath(for: descriptor)
+                do {
+                    let imageData = try await Image.loadData(from: downloadPath)
+                    // Drop the result if a newer selection has superseded this load.
+                    guard token == self.imageLoadToken else { return }
+                    self.imageSelectorView.imageView.image = NSImage(data: imageData)
+                } catch {
+                    logger.error("Failed to load image from disk: \(downloadPath.lastPathComponent, privacy: .public)")
+                }
             }
         }
-        
-        let textItem = NSMenuItem(title: "", action: nil, keyEquivalent: "")
-        textItem.tag = MenuController.TEXT_VIEW_TAG
-        let textView = TextView(frame: CGRect(x: 0, y: 0, width: menu.size.width, height: 0))
-        textView.descriptionLabel.stringValue = getDescription(description: descriptor?.descriptionString)
-        textView.copyrightLabel.stringValue = getCopyright(description: descriptor?.descriptionString)
-        textView.button.action = #selector(textItemAction)
-        textView.button.target = self
-        textItem.view = textView
-        
-        if let oldTextItem = menu.item(withTag: MenuController.TEXT_VIEW_TAG) {
-            menu.removeItem(oldTextItem)
-        }
-        if let imageView = menu.item(withTag: MenuController.IMAGE_VIEW_TAG) {
-            let textViewIndex = menu.index(of: imageView) + 1
-            menu.insertItem(textItem, at: textViewIndex)
-        } else {
-            logger.error("Image menu item not found; skipping text view insertion")
-        }
-        
+
+        textView?.descriptionLabel.stringValue = getDescription(description: descriptor?.descriptionString)
+        textView?.copyrightLabel.stringValue = getCopyright(description: descriptor?.descriptionString)
+
         imageSelectorView.leftButton.isEnabled = descriptors.indices.contains(newSelectedDescriptorIndex - 1)
         imageSelectorView.rightButton.isEnabled = descriptors.indices.contains(newSelectedDescriptorIndex + 1)
     }
@@ -225,6 +225,7 @@ extension MenuController: UpdateManagerDelegate {
 
 extension MenuController: NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
+        textView?.highlighted = false
         reloadDescriptors()
         updateImageSelectorView(newSelectedDescriptorIndex: selectedDescriptorIndex)
     }
@@ -241,5 +242,6 @@ extension MenuController: MenuBarIconControlling {
         self.menu?.removeAllItems()
         self.menu = nil
         self.statusItem = nil
+        self.textView = nil
     }
 }

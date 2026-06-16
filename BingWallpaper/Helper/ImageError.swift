@@ -9,4 +9,5 @@ import Foundation
 
 enum ImageError: Error {
     case dataNotValid
+    case badServerResponse(statusCode: Int)
 }

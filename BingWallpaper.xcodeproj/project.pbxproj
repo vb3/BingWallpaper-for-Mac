@@ -15,7 +15,6 @@
 		2C4D65C02864C3AB00878CED /* CollectionExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C4D65BF2864C3AB00878CED /* CollectionExtensions.swift */; };
 		2C6577D92862271400868EBA /* ImageSelectorView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2C6577D82862271400868EBA /* ImageSelectorView.xib */; };
 		2C6577DB286227F200868EBA /* ImageSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6577DA286227F200868EBA /* ImageSelectorView.swift */; };
-		2C8F896B2860EDB20017CC6C /* DownloadResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C8F896A2860EDB20017CC6C /* DownloadResponse.swift */; };
 		2C989837286DF54C002E5E46 /* ImageDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C989836286DF54C002E5E46 /* ImageDescriptor.swift */; };
 		2C9C7C2628603C6900F846FD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C9C7C2528603C6900F846FD /* AppDelegate.swift */; };
 		2C9C7C2A28603C6B00F846FD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2C9C7C2928603C6B00F846FD /* Assets.xcassets */; };
@@ -54,7 +53,6 @@
 		2C4D65BF2864C3AB00878CED /* CollectionExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionExtensions.swift; sourceTree = "<group>"; };
 		2C6577D82862271400868EBA /* ImageSelectorView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ImageSelectorView.xib; sourceTree = "<group>"; };
 		2C6577DA286227F200868EBA /* ImageSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSelectorView.swift; sourceTree = "<group>"; };
-		2C8F896A2860EDB20017CC6C /* DownloadResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadResponse.swift; sourceTree = "<group>"; };
 		2C989836286DF54C002E5E46 /* ImageDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageDescriptor.swift; sourceTree = "<group>"; };
 		2C9C7C2228603C6900F846FD /* BingWallpaper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BingWallpaper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C9C7C2528603C6900F846FD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -136,7 +134,6 @@
 				2C9C7C2928603C6B00F846FD /* Assets.xcassets */,
 				2C9C7C2E28603C6B00F846FD /* BingWallpaper.entitlements */,
 				E578ABE12FBF53D700D02866 /* Logging.swift */,
-				2C8F896A2860EDB20017CC6C /* DownloadResponse.swift */,
 				2C4D65BF2864C3AB00878CED /* CollectionExtensions.swift */,
 				E56BD7662BAF697B0013F1A2 /* ImageError.swift */,
 			);
@@ -351,7 +348,6 @@
 				A1B2C3D4E5F600000000CC02 /* SettingsView.swift in Sources */,
 				2C9C7C2628603C6900F846FD /* AppDelegate.swift in Sources */,
 				2C989837286DF54C002E5E46 /* ImageDescriptor.swift in Sources */,
-				2C8F896B2860EDB20017CC6C /* DownloadResponse.swift in Sources */,
 				2C1313C22861B128006E0A29 /* UpdateManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -442,7 +438,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.5.4;
+				MARKETING_VERSION = 0.6.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -500,7 +496,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.5.4;
+				MARKETING_VERSION = 0.6.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
