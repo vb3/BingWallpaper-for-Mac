@@ -15,21 +15,26 @@ No CI, runners, tokens, or secrets are involved — everything uses your own `gi
 
 1. Bump `MARKETING_VERSION` in `BingWallpaper.xcodeproj` — this is the single source of truth
    for the version.
-2. Commit and push the app repo.
-3. Run:
+2. Write the release notes at `ReleaseUtils/release-notes/v<VERSION>.md` (markdown; this becomes
+   the GitHub release body). `publish.sh` validates this **before** building and refuses to
+   release without it, so a release can never go out noteless. Copy a previous version's file as
+   a starting point.
+3. Commit and push the app repo (include the notes file).
+4. Run:
    ```sh
    ./ReleaseUtils/publish.sh
    ```
    This will:
    - build an ad-hoc / unsigned `BingWallpaper.app` (notarization is intentionally skipped),
    - produce `BingWallpaper_v<VERSION>.zip` (the cask asset) and `.pkg` (optional installer),
-   - tag `v<VERSION>` and create/refresh the GitHub release with both assets,
+   - tag `v<VERSION>` and create/refresh the GitHub release with both assets and the notes file,
    - update `version` + `sha256` in the tap's `Casks/bingwallpaper.rb`,
    - run `brew style` / `brew audit --cask`, then commit & push the tap.
 
-Override the tap location or repo if needed:
+Override the tap location, repo, or notes file if needed:
 ```sh
 TAP_DIR=/path/to/homebrew-tap ./ReleaseUtils/publish.sh
+NOTES_FILE=/path/to/notes.md ./ReleaseUtils/publish.sh
 ```
 
 ## Release contract (do not break)

@@ -26,6 +26,23 @@ command -v gh >/dev/null 2>&1     || { echo "error: gh CLI not found" >&2; exit 
 command -v shasum >/dev/null 2>&1 || { echo "error: shasum not found" >&2; exit 1; }
 [ -f "$CASK" ] || { echo "error: cask not found at $CASK (set TAP_DIR)" >&2; exit 1; }
 
+# Resolve the version and its release notes up front so we fail fast — before a
+# full build — if notes are missing. Version is read the same way release.sh does.
+VERSION=$(awk -F '=' '/MARKETING_VERSION/ {
+    gsub(/[ \t;]/, "", $2)
+    if ($2 ~ /^[0-9]+\.[0-9]+/) { print $2; exit }
+}' BingWallpaper.xcodeproj/project.pbxproj)
+[ -n "$VERSION" ] || { echo "error: could not determine MARKETING_VERSION" >&2; exit 1; }
+TAG="v${VERSION}"
+
+NOTES_FILE=${NOTES_FILE:-"$REPO_ROOT/ReleaseUtils/release-notes/${TAG}.md"}
+[ -s "$NOTES_FILE" ] || {
+  echo "error: release notes missing or empty: $NOTES_FILE" >&2
+  echo "       write the notes there (see existing files in ReleaseUtils/release-notes/)," >&2
+  echo "       or point NOTES_FILE=/path/to/notes.md at them, then re-run." >&2
+  exit 1
+}
+
 # 1. Build + package. release.sh prints VERSION / ZIP / PKG / SHA256.
 BUILD_OUT=$("$SCRIPT_DIR/release.sh")
 echo "$BUILD_OUT"
@@ -39,17 +56,18 @@ TAG="v${VERSION}"
   echo "error: release.sh did not report VERSION/ZIP/SHA256" >&2; exit 1
 }
 
-# 2. Publish the GitHub release (create if missing; otherwise refresh assets).
+# 2. Publish the GitHub release (create if missing; otherwise refresh assets + notes).
 if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
-  echo "Release $TAG already exists; uploading assets (--clobber)"
+  echo "Release $TAG already exists; uploading assets (--clobber) and refreshing notes"
   gh release upload "$TAG" "$ZIP" "$PKG" --repo "$REPO" --clobber
+  gh release edit "$TAG" --repo "$REPO" --notes-file "$NOTES_FILE"
 else
   git tag -a "$TAG" -m "BingWallpaper $VERSION" 2>/dev/null || true
   git push origin "$TAG"
   gh release create "$TAG" "$ZIP" "$PKG" \
     --repo "$REPO" \
     --title "BingWallpaper $VERSION" \
-    --notes "BingWallpaper $VERSION"
+    --notes-file "$NOTES_FILE"
 fi
 
 # 3. Bump the Homebrew cask (version + sha256) in the tap.
