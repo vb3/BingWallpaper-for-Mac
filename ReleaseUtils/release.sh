@@ -31,15 +31,33 @@ ZIP="BingWallpaper_v${VERSION}.zip"
 PKG="BingWallpaper_v${VERSION}.pkg"
 
 # Build
+#
+# Ad-hoc sign (identity "-") rather than skipping signing entirely. A fully
+# unsigned / linker-only signature leaves the Info.plist unbound and drops the
+# sandbox entitlements, which prevents UserNotifications from registering the
+# app (it never appears in System Settings -> Notifications). Ad-hoc signing —
+# the same thing Xcode's "Sign to Run Locally" does — binds the Info.plist and
+# applies the entitlements while still skipping notarization.
 xcodebuild clean build \
     -project BingWallpaper.xcodeproj \
     -scheme BingWallpaper \
     -configuration Release \
     -derivedDataPath "${DERIVED}" \
-    CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+    CODE_SIGN_IDENTITY="-" CODE_SIGN_STYLE=Manual CODE_SIGNING_REQUIRED=YES CODE_SIGNING_ALLOWED=YES DEVELOPMENT_TEAM=""
 
 if [ ! -d "${APP}" ]; then
     echo "error: build did not produce ${APP}" >&2
+    exit 1
+fi
+
+# Fail loudly if the app didn't end up properly signed with its entitlements,
+# so we never ship another build that can't request notifications.
+if ! codesign --verify --strict "${APP}" 2>/dev/null; then
+    echo "error: ${APP} failed codesign verification" >&2
+    exit 1
+fi
+if ! codesign -d --entitlements - "${APP}" 2>/dev/null | grep -q "com.apple.security.app-sandbox"; then
+    echo "error: ${APP} is missing the sandbox entitlement (signing did not apply entitlements)" >&2
     exit 1
 fi
 
