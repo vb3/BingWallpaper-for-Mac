@@ -1,6 +1,6 @@
 import Cocoa
 
-// TODO: @2h4u create and add icon (app icon and menubar icon)
+// TODO: @2h4u create and add a custom menu-bar icon (app icon added)
 
 @main
 @MainActor
