@@ -49,17 +49,20 @@ class WallpaperManager {
         updateWallpaperIfNeeded()
     }
     
-    func setWallpaper(descriptor: ImageDescriptor) {
+    @discardableResult
+    func setWallpaper(descriptor: ImageDescriptor) -> Bool {
         imageDescriptor = descriptor
-        updateWallpaperIfNeeded()
+        return updateWallpaperIfNeeded()
     }
-    
-    private func updateWallpaperIfNeeded() {
-        guard let descriptor = imageDescriptor else { return }
+
+    @discardableResult
+    private func updateWallpaperIfNeeded() -> Bool {
+        guard let descriptor = imageDescriptor else { return false }
         let imageUrl = Image.downloadPath(for: descriptor)
         let workspace = NSWorkspace.shared
         let targetPath = imageUrl.standardizedFileURL.path
 
+        var didFail = false
         for screen in NSScreen.screens {
             // macOS keeps a separate wallpaper per Space, so the current image
             // must be queried live for each screen (never cached): a newly
@@ -71,7 +74,11 @@ class WallpaperManager {
                 try workspace.setDesktopImageURL(imageUrl, for: screen, options: [:])
             } catch {
                 logger.error("Failed to set desktop image: \(error.localizedDescription)")
+                didFail = true
             }
         }
+        // Treat "already matching on every screen" as success; only a thrown
+        // setDesktopImageURL counts as a failure.
+        return didFail == false
     }
 }

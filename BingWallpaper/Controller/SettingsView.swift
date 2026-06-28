@@ -20,6 +20,7 @@ final class SettingsViewModel {
     private let settings: Settings
     weak var menuBarIconController: MenuBarIconControlling?
     weak var updateManager: UpdateManager?
+    weak var notificationManager: NotificationManager?
 
     var launchAtLogin: Bool
     var hideMenuBarIcon: Bool {
@@ -39,12 +40,22 @@ final class SettingsViewModel {
             settings.keepImageDuration = keepImageDuration
         }
     }
+    var notifyOnWallpaperChange: Bool {
+        didSet {
+            guard notifyOnWallpaperChange != oldValue else { return }
+            settings.notifyOnWallpaperChange = notifyOnWallpaperChange
+            if notifyOnWallpaperChange {
+                handleNotificationsEnabled()
+            }
+        }
+    }
 
     init() {
         let settings = Settings.shared
         launchAtLogin = settings.launchAtLogin
         hideMenuBarIcon = settings.hideMenuBarIcon
         keepImageDuration = settings.keepImageDuration
+        notifyOnWallpaperChange = settings.notifyOnWallpaperChange
         self.settings = settings
     }
 
@@ -82,8 +93,7 @@ final class SettingsViewModel {
         }
     }
 
-    func resetDatabase() {
-        logger.info("Resetting Database...")
+    func resetDatabase() {        logger.info("Resetting Database...")
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyyMMdd"
         let oldestDateStringToKeep = dateFormatter.string(from: Date())
@@ -98,8 +108,46 @@ final class SettingsViewModel {
         updateManager?.update()
     }
 
-    private func promptToApproveLoginItem() {
+    /// When the user opts in, seed dedup state with the currently-set wallpaper
+    /// (so the existing wallpaper isn't immediately re-announced) and request
+    /// notification authorization. If the user denies, revert the toggle and
+    /// point them to System Settings.
+    private func handleNotificationsEnabled() {
+        if let newest = newestSavedDescriptor() {
+            notificationManager?.seedLastNotified(startDate: newest.startDate)
+        }
+
+        Task { @MainActor in
+            guard let notificationManager else { return }
+            let granted = await notificationManager.requestAuthorizationIfNeeded()
+            guard granted == false else { return }
+            notifyOnWallpaperChange = false
+            presentNotificationsDeniedAlert()
+        }
+    }
+
+    private func newestSavedDescriptor() -> ImageDescriptor? {
+        return Database.instance.allImageDescriptors()
+            .filter { Image.isSavedToDisk(descriptor: $0) }
+            .last
+    }
+
+    private func presentNotificationsDeniedAlert() {
         let alert = NSAlert()
+        alert.messageText = "Notifications are turned off"
+        alert.informativeText = "BingWallpaper isn't allowed to send notifications. Enable them for BingWallpaper in System Settings to be notified when the wallpaper changes."
+        alert.alertStyle = .informational
+        let openButton = alert.addButton(withTitle: "Open Notification Settings")
+        alert.addButton(withTitle: "Later")
+        alert.window.defaultButtonCell = openButton.cell as? NSButtonCell
+
+        if alert.runModal() == .alertFirstButtonReturn,
+           let url = URL(string: "x-apple.systempreferences:com.apple.preference.notifications") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    private func promptToApproveLoginItem() {        let alert = NSAlert()
         alert.messageText = "Approve BingWallpaper in Login Items"
         alert.informativeText = "BingWallpaper has been added to your Login Items but macOS needs your approval before it can launch at login. Open System Settings to confirm it."
         alert.alertStyle = .informational
@@ -137,6 +185,8 @@ struct SettingsView: View {
             ))
 
             Toggle("Hide menu bar icon", isOn: $model.hideMenuBarIcon)
+
+            Toggle("Notify when wallpaper changes", isOn: $model.notifyOnWallpaperChange)
 
             VStack(alignment: .leading) {
                 Text(model.keepImagesLabel)
