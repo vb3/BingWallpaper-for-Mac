@@ -22,7 +22,13 @@ class MenuController: NSObject {
     private lazy var settingsModel = SettingsViewModel()
     private var textView: TextView?
     private var imageLoadToken = 0
-    
+    let notificationManager = NotificationManager()
+
+    override init() {
+        super.init()
+        notificationManager.installAsDelegate()
+    }
+
     // MARK: - UI setup
     
     @MainActor
@@ -94,6 +100,7 @@ class MenuController: NSObject {
     @objc func showSettingsWc(sender: NSMenuItem?) {
         settingsModel.menuBarIconController = self
         settingsModel.updateManager = updateManager
+        settingsModel.notificationManager = notificationManager
         settingsModel.refreshFromSettings()
 
         if settingsWindow == nil {
@@ -154,10 +161,12 @@ class MenuController: NSObject {
         return imageViewWidth / 16*9 + topMargin
     }
     
-    private func updateSelectedImage(newSelectedDescriptorIndex: Int) {
+    @discardableResult
+    private func updateSelectedImage(newSelectedDescriptorIndex: Int) -> Bool {
         if let descriptor = descriptors[safe: newSelectedDescriptorIndex] {
-            WallpaperManager.shared.setWallpaper(descriptor: descriptor)
+            return WallpaperManager.shared.setWallpaper(descriptor: descriptor)
         }
+        return false
     }
     
     @MainActor
@@ -189,26 +198,13 @@ class MenuController: NSObject {
     }
     
     private func getDescription(description: String?) -> String {
-        return splitDescription(description).text
+        return Caption.split(description).text
     }
 
     private func getCopyright(description: String?) -> String {
-        return splitDescription(description).copyright
+        return Caption.split(description).copyright
     }
 
-    /// Splits a Bing caption like `"Some place, with detail (© Credit/Source)"`
-    /// into its descriptive text and the trailing parenthetical credit. Uses the
-    /// last `(` so descriptions that themselves contain parentheses still parse.
-    private func splitDescription(_ description: String?) -> (text: String, copyright: String) {
-        guard let description, let openIndex = description.lastIndex(of: "(") else {
-            return (description ?? "", "")
-        }
-        let text = description[..<openIndex].trimmingCharacters(in: .whitespaces)
-        var copyright = String(description[description.index(after: openIndex)...])
-        if copyright.hasSuffix(")") { copyright.removeLast() }
-        return (text, copyright)
-    }
-    
     @MainActor
     private func reloadDescriptors() {
         descriptors = Database.instance.allImageDescriptors()
@@ -219,10 +215,12 @@ class MenuController: NSObject {
     }
     
     @MainActor
-    private func showNewestImage() {
+    @discardableResult
+    private func showNewestImage() -> (descriptor: ImageDescriptor?, didSet: Bool) {
         reloadDescriptors()
         selectedDescriptorIndex = descriptors.isEmpty ? 0 : descriptors.count - 1
-        updateSelectedImage(newSelectedDescriptorIndex: selectedDescriptorIndex)
+        let didSet = updateSelectedImage(newSelectedDescriptorIndex: selectedDescriptorIndex)
+        return (descriptors[safe: selectedDescriptorIndex], didSet)
     }
 }
 
@@ -230,7 +228,22 @@ class MenuController: NSObject {
 
 extension MenuController: UpdateManagerDelegate {
     func downloadedNewImage() {
-        showNewestImage()
+        let (descriptor, didSet) = showNewestImage()
+        guard didSet, let descriptor else { return }
+
+        // Extract plain values off the SwiftData @Model on the main actor before
+        // handing them to the async notification work.
+        let startDate = descriptor.startDate
+        let descriptionString = descriptor.descriptionString
+        let imageURL = Image.downloadPath(for: descriptor)
+
+        Task {
+            await notificationManager.notifyWallpaperChanged(
+                startDate: startDate,
+                descriptionString: descriptionString,
+                imageURL: imageURL
+            )
+        }
     }
 }
 

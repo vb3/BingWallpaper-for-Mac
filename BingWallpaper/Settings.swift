@@ -84,6 +84,24 @@ public final class Settings: @unchecked Sendable {
         }
     }
     
+    var notifyOnWallpaperChange: Bool {
+        get {
+            return defaults.bool(forKey: Settings.NOTIFY_ON_WALLPAPER_CHANGE)
+        }
+        set {
+            defaults.set(newValue, forKey: Settings.NOTIFY_ON_WALLPAPER_CHANGE)
+        }
+    }
+
+    var lastNotifiedImageStartDate: String? {
+        get {
+            return defaults.string(forKey: Settings.LAST_NOTIFIED_IMAGE_START_DATE)
+        }
+        set {
+            defaults.set(newValue, forKey: Settings.LAST_NOTIFIED_IMAGE_START_DATE)
+        }
+    }
+
     var keepImageDuration: Int {
         get {
             return defaults.object(forKey: Settings.KEEP_IMAGE_DURATION) as? Int ?? KeepImageDuration.fifty.rawValue
@@ -139,6 +157,8 @@ public final class Settings: @unchecked Sendable {
     private static let HIDE_MENU_BAR_ICON = "HIDE_MENU_BAR_ICON"
     private static let LAST_UPDATE = "LAST_UPDATE"
     private static let KEEP_IMAGE_DURATION = "KEEP_IMAGE_DURATION"
+    private static let NOTIFY_ON_WALLPAPER_CHANGE = "NOTIFY_ON_WALLPAPER_CHANGE"
+    private static let LAST_NOTIFIED_IMAGE_START_DATE = "LAST_NOTIFIED_IMAGE_START_DATE"
 }
 
 enum KeepImageDuration: Int {

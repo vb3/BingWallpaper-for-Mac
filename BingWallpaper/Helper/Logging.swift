@@ -18,5 +18,6 @@ class Logging {
         case Wallpaper
         case Update
         case Menu
+        case Notification
     }
 }
