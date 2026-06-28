@@ -18,7 +18,7 @@ public class UpdateScheduleManager {
     }
     
     public static func nextFetchTimeInterval() -> TimeInterval {
-        let lastUpdate = Settings().lastUpdate
+        let lastUpdate = Settings.shared.lastUpdate
         return max(0, FETCH_INTERVAL - abs(lastUpdate.timeIntervalSinceNow))
     }
         

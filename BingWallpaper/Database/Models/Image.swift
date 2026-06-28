@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import AppKit
+import ImageIO
 
 enum Image {
     static func downloadPath(for descriptor: ImageDescriptor) -> URL {
@@ -27,9 +27,24 @@ enum Image {
     
     static func downloadAndSave(from imageUrl: URL, to downloadPath: URL) async throws {
         let imageData = try await DownloadManager.downloadBinary(from: imageUrl)
-        guard NSImage(data: imageData) != nil else {
+        // Fully decode the first frame so truncated or non-image payloads (error
+        // pages, captive portals) are rejected. Throwing here leaves the descriptor
+        // "not on disk" so it is retried on the next update instead of persisting garbage.
+        guard isValidImageData(imageData) else {
             throw ImageError.dataNotValid
         }
         try FileHandler.saveImageDataToDisk(imageData: imageData, toUrl: downloadPath)
+    }
+
+    /// Returns `true` only if `data` decodes to at least one complete image,
+    /// catching truncated downloads that a lenient decoder might accept.
+    static func isValidImageData(_ data: Data) -> Bool {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              CGImageSourceGetType(source) != nil,
+              CGImageSourceGetCount(source) > 0,
+              CGImageSourceCreateImageAtIndex(source, 0, nil) != nil else {
+            return false
+        }
+        return true
     }
 }

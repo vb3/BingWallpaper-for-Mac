@@ -11,7 +11,7 @@ private let logger = Logger(
 class MenuController: NSObject {
     private var statusItem: NSStatusItem?
     private var menu: NSMenu?
-    private let settings = Settings()
+    private let settings = Settings.shared
     private var descriptors = [ImageDescriptor]()
     private var selectedDescriptorIndex = 0
     private var imageSelectorView: ImageSelectorView!
@@ -189,13 +189,24 @@ class MenuController: NSObject {
     }
     
     private func getDescription(description: String?) -> String {
-        if description == nil { return "" }
-        return String(description?.split(separator: "(").first ?? "")
+        return splitDescription(description).text
     }
-    
+
     private func getCopyright(description: String?) -> String {
-        if description == nil { return "" }
-        return description?.split(separator: "(").last?.replacingOccurrences(of: ")", with: "") ?? ""
+        return splitDescription(description).copyright
+    }
+
+    /// Splits a Bing caption like `"Some place, with detail (© Credit/Source)"`
+    /// into its descriptive text and the trailing parenthetical credit. Uses the
+    /// last `(` so descriptions that themselves contain parentheses still parse.
+    private func splitDescription(_ description: String?) -> (text: String, copyright: String) {
+        guard let description, let openIndex = description.lastIndex(of: "(") else {
+            return (description ?? "", "")
+        }
+        let text = description[..<openIndex].trimmingCharacters(in: .whitespaces)
+        var copyright = String(description[description.index(after: openIndex)...])
+        if copyright.hasSuffix(")") { copyright.removeLast() }
+        return (text, copyright)
     }
     
     @MainActor

@@ -38,7 +38,7 @@ class FileHandler {
     }
     
     static func saveImageDataToDisk(imageData: Data, toUrl: URL) throws {
-        try imageData.write(to: toUrl, options: .withoutOverwriting)
+        try imageData.write(to: toUrl, options: .atomic)
     }
     
     static func getSavedImages() -> [URL] {
@@ -61,7 +61,8 @@ class FileHandler {
     
     static func deleteOldImages(oldestDateStringToKeep: String) {
         getSavedImages()
-            .filter { $0.lastPathComponent.replacingOccurrences(of: ".jpg", with: "") <= oldestDateStringToKeep }
+            .filter { $0.pathExtension.lowercased() == "jpg" }
+            .filter { $0.deletingPathExtension().lastPathComponent <= oldestDateStringToKeep }
             .forEach { removeImageFromDisk(imagePath: $0) }
     }
 }

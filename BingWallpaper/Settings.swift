@@ -8,7 +8,9 @@ private let logger = Logger(
     category: Logging.Category.Settings.rawValue
 )
 
-public class Settings {
+public final class Settings: @unchecked Sendable {
+    public static let shared = Settings()
+
     private let defaults = UserDefaults.standard
 
     public init() {

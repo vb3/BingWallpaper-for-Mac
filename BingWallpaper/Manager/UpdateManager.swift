@@ -18,7 +18,7 @@ final class UpdateManager {
     private static let RETRY_INTERVAL: TimeInterval = 15 * 60
 
     weak var delegate: UpdateManagerDelegate?
-    private let settings = Settings()
+    private let settings = Settings.shared
     private var activity: NSBackgroundActivityScheduler?
     private var pendingCompletion: NSBackgroundActivityScheduler.CompletionHandler?
     private var isUpdating = false

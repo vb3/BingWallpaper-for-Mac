@@ -41,7 +41,7 @@ final class SettingsViewModel {
     }
 
     init() {
-        let settings = Settings()
+        let settings = Settings.shared
         launchAtLogin = settings.launchAtLogin
         hideMenuBarIcon = settings.hideMenuBarIcon
         keepImageDuration = settings.keepImageDuration
